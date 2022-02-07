@@ -1,0 +1,16 @@
+{
+  "name": "video assist",
+  "description": "该死，没有网页全屏",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "run_at": "document_idle",
+      "js": ["vt_load.js"]
+    }
+  ]
+}
