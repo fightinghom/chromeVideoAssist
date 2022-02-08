@@ -2,17 +2,15 @@ console.log('load tools')
 
 const wapperStyles = [
   'height: 0px',
-  'position: absolute',
-  'top: 0',
-  'right: 0'
+  'position: relative',
 ]
 
 const toolBtnsStyles = [
   'float: right',
   'position: absolute',
   'bottom: 0',
-  'right: 0',
-  'transform: translateY(calc(100% + 20px))',
+  'left: 50%',
+  'transform: translate(-50%, 100%)',
   'z-index: 9999'
 ]
 
@@ -34,11 +32,42 @@ const fullPageWapperStyles = [
   'z-index: 10000'
 ]
 
+const closeBtnStyles = [
+  'position: fixed',
+  'z-index: 10001',
+  'top: 10px',
+  'right: 10px',
+  'display: inline-block',
+  'color: #FFF'
+]
+
+let mask = null
+
+const createMask = (v, originStyles) => {
+  mask = document.createElement('div')
+  mask.style.cssText = fullPageWapperStyles.join(';')
+
+  // 创建退出按钮
+  const close = document.createElement('div')
+  close.style.cssText = closeBtnStyles.join(';')
+  close.innerText = '关闭'
+  close.addEventListener('click', () => {
+    mask.remove()
+    v.createTools = false
+    v.style = JSON.parse(originStyles)
+  })
+
+  mask.append(close)
+  document.body.append(mask)
+}
+
 const fullPage = (v) => {
+  createMask(v, JSON.stringify(v.style))
   v.style.position = 'fixed'
   v.style.width = '100%'
-  v.style.zIndex = '10001'
+  v.style.zIndex = '10999'
   v.style.top = '50%'
+  v.style.left = 0
   v.style.transform = 'translateY(-50%)'
 }
 
@@ -59,20 +88,22 @@ const buildToolsEl = (video) => {
   return wapper
 }
 
-const addTools = (tools, item) => {
-  item.parentNode.insertBefore(tools, item)
-}
-
-const removeTools = (tools) => {
-  tools.remove()
-}
-
-const videos = document.getElementsByTagName('video')
-if (videos.length > 0) {
-  for (const item of videos) {
-    console.log('item', item)
-    const toolEl = buildToolsEl(item)
-    item.addEventListener('mouseenter', () => { addTools(toolEl, item) })
-    item.addEventListener('mouseleave', () => { removeTools(toolEl) })
+let tools = null
+document.body.addEventListener('mousemove', ({ path }) => {
+  for (const item of path) {
+    if (item.nodeName === 'VIDEO' && !item.createTools) {
+      tools = buildToolsEl(item)
+      tools.removeEvent = () => {
+        item.createTools = false
+        tools.remove()
+      }
+      item.parentNode.insertBefore(tools, item)
+      item.createTools = true
+      return true
+    }
   }
-}
+  const vd = path.find((item) => item.nodeName === 'VIDEO')
+  if (!vd && tools) {
+    tools.removeEvent()
+  }
+})
